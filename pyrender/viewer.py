@@ -19,8 +19,9 @@ except Exception:
     except Exception:
         pass
 
-from .constants import (OPEN_GL_MAJOR, OPEN_GL_MINOR, TEXT_PADDING, DEFAULT_SCENE_SCALE,
-                        DEFAULT_Z_FAR, DEFAULT_Z_NEAR, RenderFlags, TextAlign)
+from .constants import (OPEN_GL_MAJOR, OPEN_GL_MINOR, TEXT_PADDING,
+                        DEFAULT_SCENE_SCALE, DEFAULT_Z_FAR, DEFAULT_Z_NEAR,
+                        RenderFlags, TextAlign)
 from .light import DirectionalLight
 from .node import Node
 from .camera import PerspectiveCamera, OrthographicCamera, IntrinsicsCamera
@@ -171,9 +172,14 @@ class Viewer(pyglet.window.Window):
     :attr:`.Viewer.render_lock`, and release it  when your update is done.
     """
 
-    def __init__(self, scene, viewport_size=None,
-                 render_flags=None, viewer_flags=None,
-                 registered_keys=None, run_in_thread=False, **kwargs):
+    def __init__(self,
+                 scene,
+                 viewport_size=None,
+                 render_flags=None,
+                 viewer_flags=None,
+                 registered_keys=None,
+                 run_in_thread=False,
+                 **kwargs):
 
         #######################################################################
         # Save attributes and flags
@@ -219,8 +225,7 @@ class Viewer(pyglet.window.Window):
         self._render_flags = self._default_render_flags.copy()
         self._viewer_flags = self._default_viewer_flags.copy()
         self._viewer_flags['rotate_axis'] = (
-            self._default_viewer_flags['rotate_axis'].copy()
-        )
+            self._default_viewer_flags['rotate_axis'].copy())
 
         if render_flags is not None:
             self._render_flags.update(render_flags)
@@ -240,7 +245,8 @@ class Viewer(pyglet.window.Window):
         self._registered_keys = {}
         if registered_keys is not None:
             self._registered_keys = {
-                ord(k.lower()): registered_keys[k] for k in registered_keys
+                ord(k.lower()): registered_keys[k]
+                for k in registered_keys
             }
 
         #######################################################################
@@ -258,9 +264,9 @@ class Viewer(pyglet.window.Window):
 
         # Set up axes
         self._axes = {}
-        self._axis_mesh = Mesh.from_trimesh(
-            trimesh.creation.axis(origin_size=0.1, axis_radius=0.05,
-                                  axis_length=1.0), smooth=False)
+        self._axis_mesh = Mesh.from_trimesh(trimesh.creation.axis(
+            origin_size=0.1, axis_radius=0.05, axis_length=1.0),
+                                            smooth=False)
         if self.viewer_flags['show_world_axis']:
             self._set_axes(world=self.viewer_flags['show_world_axis'],
                            mesh=self.viewer_flags['show_mesh_axes'])
@@ -303,18 +309,17 @@ class Viewer(pyglet.window.Window):
                 znear = min(scene.scale / 10.0, DEFAULT_Z_NEAR)
 
         if self._default_persp_cam is None:
-            self._default_persp_cam = PerspectiveCamera(
-                yfov=np.pi / 3.0, znear=znear, zfar=zfar
-            )
+            self._default_persp_cam = PerspectiveCamera(yfov=np.pi / 3.0,
+                                                        znear=znear,
+                                                        zfar=zfar)
         if self._default_orth_cam is None:
             xmag = ymag = scene.scale
             if scene.scale == 0:
                 xmag = ymag = 1.0
-            self._default_orth_cam = OrthographicCamera(
-                xmag=xmag, ymag=ymag,
-                znear=znear,
-                zfar=zfar
-            )
+            self._default_orth_cam = OrthographicCamera(xmag=xmag,
+                                                        ymag=ymag,
+                                                        znear=znear,
+                                                        zfar=zfar)
         if self._default_camera_pose is None:
             self._default_camera_pose = self._compute_initial_camera_pose()
 
@@ -324,9 +329,8 @@ class Viewer(pyglet.window.Window):
         else:
             camera = self._default_orth_cam
 
-        self._camera_node = Node(
-            matrix=self._default_camera_pose, camera=camera
-        )
+        self._camera_node = Node(matrix=self._default_camera_pose,
+                                 camera=camera)
         scene.add_node(self._camera_node)
         scene.main_camera_node = self._camera_node
         self._reset_view()
@@ -334,10 +338,9 @@ class Viewer(pyglet.window.Window):
         #######################################################################
         # Initialize OpenGL context and renderer
         #######################################################################
-        self._renderer = Renderer(
-            self._viewport_size[0], self._viewport_size[1],
-            self.render_flags['point_size']
-        )
+        self._renderer = Renderer(self._viewport_size[0],
+                                  self._viewport_size[1],
+                                  self.render_flags['point_size'])
         self._is_active = True
 
         if self.run_in_thread:
@@ -507,9 +510,11 @@ class Viewer(pyglet.window.Window):
             filename = self._get_save_filename(['gif', 'all'])
         if filename is not None:
             self.viewer_flags['save_directory'] = os.path.dirname(filename)
-            imageio.mimwrite(filename, self._saved_frames,
+            imageio.mimwrite(filename,
+                             self._saved_frames,
                              fps=self.viewer_flags['refresh_rate'],
-                             palettesize=128, subrectangles=True)
+                             palettesize=128,
+                             subrectangles=True)
         self._saved_frames = []
 
     def on_close(self):
@@ -566,29 +571,28 @@ class Viewer(pyglet.window.Window):
         self._render()
 
         if self._message_text is not None:
-            self._renderer.render_text(
-                self._message_text,
-                self.viewport_size[0] - TEXT_PADDING,
-                TEXT_PADDING,
-                font_pt=20,
-                color=np.array([0.1, 0.7, 0.2,
-                                np.clip(self._message_opac, 0.0, 1.0)]),
-                align=TextAlign.BOTTOM_RIGHT
-            )
+            self._renderer.render_text(self._message_text,
+                                       self.viewport_size[0] - TEXT_PADDING,
+                                       TEXT_PADDING,
+                                       font_pt=20,
+                                       color=np.array([
+                                           0.1, 0.7, 0.2,
+                                           np.clip(self._message_opac, 0.0,
+                                                   1.0)
+                                       ]),
+                                       align=TextAlign.BOTTOM_RIGHT)
 
         if self.viewer_flags['caption'] is not None:
             for caption in self.viewer_flags['caption']:
                 xpos, ypos = self._location_to_x_y(caption['location'])
-                self._renderer.render_text(
-                    caption['text'],
-                    xpos,
-                    ypos,
-                    font_name=caption['font_name'],
-                    font_pt=caption['font_pt'],
-                    color=caption['color'],
-                    scale=caption['scale'],
-                    align=caption['location']
-                )
+                self._renderer.render_text(caption['text'],
+                                           xpos,
+                                           ypos,
+                                           font_name=caption['font_name'],
+                                           font_pt=caption['font_pt'],
+                                           color=caption['color'],
+                                           scale=caption['scale'],
+                                           align=caption['location'])
 
         if self.run_in_thread:
             self.render_lock.release()
@@ -650,7 +654,7 @@ class Viewer(pyglet.window.Window):
             if dy > 0:
                 sf = spfc * dy
             elif dy < 0:
-                sf = - spbc * dy
+                sf = -spbc * dy
 
             c = self._camera_node.camera
             xmag = max(c.xmag * sf, 1e-8)
@@ -692,8 +696,7 @@ class Viewer(pyglet.window.Window):
         # C toggles backface culling
         elif symbol == pyglet.window.key.C:
             self.render_flags['cull_faces'] = (
-                not self.render_flags['cull_faces']
-            )
+                not self.render_flags['cull_faces'])
             if self.render_flags['cull_faces']:
                 self._message_text = 'Cull Faces On'
             else:
@@ -702,8 +705,7 @@ class Viewer(pyglet.window.Window):
         # F toggles face normals
         elif symbol == pyglet.window.key.F:
             self.viewer_flags['fullscreen'] = (
-                not self.viewer_flags['fullscreen']
-            )
+                not self.viewer_flags['fullscreen'])
             self.set_fullscreen(self.viewer_flags['fullscreen'])
             self.activate()
             if self.viewer_flags['fullscreen']:
@@ -720,20 +722,20 @@ class Viewer(pyglet.window.Window):
                 self._message_text = 'Shadows Off'
 
         elif symbol == pyglet.window.key.I:
-            if (self.viewer_flags['show_world_axis'] and not
-                    self.viewer_flags['show_mesh_axes']):
+            if (self.viewer_flags['show_world_axis']
+                    and not self.viewer_flags['show_mesh_axes']):
                 self.viewer_flags['show_world_axis'] = False
                 self.viewer_flags['show_mesh_axes'] = True
                 self._set_axes(False, True)
                 self._message_text = 'Mesh Axes On'
-            elif (not self.viewer_flags['show_world_axis'] and
-                    self.viewer_flags['show_mesh_axes']):
+            elif (not self.viewer_flags['show_world_axis']
+                  and self.viewer_flags['show_mesh_axes']):
                 self.viewer_flags['show_world_axis'] = True
                 self.viewer_flags['show_mesh_axes'] = True
                 self._set_axes(True, True)
                 self._message_text = 'All Axes On'
-            elif (self.viewer_flags['show_world_axis'] and
-                    self.viewer_flags['show_mesh_axes']):
+            elif (self.viewer_flags['show_world_axis']
+                  and self.viewer_flags['show_mesh_axes']):
                 self.viewer_flags['show_world_axis'] = False
                 self.viewer_flags['show_mesh_axes'] = False
                 self._set_axes(False, False)
@@ -762,8 +764,7 @@ class Viewer(pyglet.window.Window):
         # M toggles face normals
         elif symbol == pyglet.window.key.M:
             self.render_flags['face_normals'] = (
-                not self.render_flags['face_normals']
-            )
+                not self.render_flags['face_normals'])
             if self.render_flags['face_normals']:
                 self._message_text = 'Face Normals On'
             else:
@@ -772,8 +773,7 @@ class Viewer(pyglet.window.Window):
         # N toggles vertex normals
         elif symbol == pyglet.window.key.N:
             self.render_flags['vertex_normals'] = (
-                not self.render_flags['vertex_normals']
-            )
+                not self.render_flags['vertex_normals'])
             if self.render_flags['vertex_normals']:
                 self._message_text = 'Vert Normals On'
             else:
@@ -782,8 +782,7 @@ class Viewer(pyglet.window.Window):
         # O toggles orthographic camera mode
         elif symbol == pyglet.window.key.O:
             self.viewer_flags['use_perspective_cam'] = (
-                not self.viewer_flags['use_perspective_cam']
-            )
+                not self.viewer_flags['use_perspective_cam'])
             if self.viewer_flags['use_perspective_cam']:
                 camera = self._default_persp_cam
                 self._message_text = 'Perspective View'
@@ -808,9 +807,8 @@ class Viewer(pyglet.window.Window):
                 self.save_gif()
                 self.set_caption(self.viewer_flags['window_title'])
             else:
-                self.set_caption(
-                    '{} (RECORDING)'.format(self.viewer_flags['window_title'])
-                )
+                self.set_caption('{} (RECORDING)'.format(
+                    self.viewer_flags['window_title']))
             self.viewer_flags['record'] = not self.viewer_flags['record']
 
         # S saves the current frame as an image
@@ -857,8 +855,8 @@ class Viewer(pyglet.window.Window):
 
         if self.viewer_flags['record']:
             self._record()
-        if (self.viewer_flags['rotate'] and not
-                self.viewer_flags['mouse_pressed']):
+        if (self.viewer_flags['rotate']
+                and not self.viewer_flags['mouse_pressed']):
             self._rotate()
 
         # Manage message opacity
@@ -891,9 +889,8 @@ class Viewer(pyglet.window.Window):
             centroid = self.viewer_flags['view_center']
 
         self._camera_node.matrix = self._default_camera_pose
-        self._trackball = Trackball(
-            self._default_camera_pose, self.viewport_size, scale, centroid
-        )
+        self._trackball = Trackball(self._default_camera_pose,
+                                    self.viewport_size, scale, centroid)
 
     def _get_save_filename(self, file_exts):
         file_types = {
@@ -909,9 +906,9 @@ class Viewer(pyglet.window.Window):
             if save_dir is None:
                 save_dir = os.getcwd()
             filename = filedialog.asksaveasfilename(
-                initialdir=save_dir, title='Select file save location',
-                filetypes=filetypes
-            )
+                initialdir=save_dir,
+                title='Select file save location',
+                filetypes=filetypes)
         except Exception:
             return None
 
@@ -961,9 +958,8 @@ class Viewer(pyglet.window.Window):
 
         if self.viewer_flags['use_direct_lighting']:
             if not self.scene.has_node(self._direct_light):
-                scene.add_node(
-                    self._direct_light, parent_node=self._camera_node
-                )
+                scene.add_node(self._direct_light,
+                               parent_node=self._camera_node)
         elif self.scene.has_node(self._direct_light):
             self.scene.remove_node(self._direct_light)
 
@@ -988,18 +984,20 @@ class Viewer(pyglet.window.Window):
 
     def _init_and_start_app(self):
         from pyglet.gl import Config
-        conf = Config(sample_buffers=1, samples=4,
-                      depth_size=24, double_buffer=True,
+        conf = Config(sample_buffers=1,
+                      samples=4,
+                      depth_size=24,
+                      double_buffer=True,
                       major_version=OPEN_GL_MAJOR,
                       minor_version=OPEN_GL_MINOR)
-        super(Viewer, self).__init__(config=conf, resizable=True,
+        super(Viewer, self).__init__(config=conf,
+                                     resizable=True,
                                      width=self._viewport_size[0],
                                      height=self._viewport_size[1])
         if self.context.config.major_version < 3:
             raise ValueError('Unable to initialize an OpenGL 3+ context')
-        clock.schedule_interval(
-            Viewer._time_event, 1.0 / self.viewer_flags['refresh_rate'], self
-        )
+        clock.schedule_interval(Viewer._time_event,
+                                1.0 / self.viewer_flags['refresh_rate'], self)
         self.switch_to()
         self.set_caption(self.viewer_flags['window_title'])
         pyglet.app.run()
@@ -1014,14 +1012,10 @@ class Viewer(pyglet.window.Window):
 
         s2 = 1.0 / np.sqrt(2.0)
         cp = np.eye(4)
-        cp[:3,:3] = np.array([
-            [0.0, -s2, s2],
-            [1.0, 0.0, 0.0],
-            [0.0, s2, s2]
-        ])
+        cp[:3, :3] = np.array([[0.0, -s2, s2], [1.0, 0.0, 0.0], [0.0, s2, s2]])
         hfov = np.pi / 6.0
         dist = scale / (2.0 * np.tan(hfov))
-        cp[:3,3] = dist * np.array([1.0, 0.0, 1.0]) + centroid
+        cp[:3, 3] = dist * np.array([1.0, 0.0, 1.0]) + centroid
 
         return cp
 
@@ -1045,11 +1039,10 @@ class Viewer(pyglet.window.Window):
             y = np.cross(z, x)
 
             matrix = np.eye(4)
-            matrix[:3,:3] = np.c_[x,y,z]
-            nodes.append(Node(
-                light=DirectionalLight(color=np.ones(3), intensity=1.0),
-                matrix=matrix
-            ))
+            matrix[:3, :3] = np.c_[x, y, z]
+            nodes.append(
+                Node(light=DirectionalLight(color=np.ones(3), intensity=1.0),
+                     matrix=matrix))
 
         return nodes
 
@@ -1080,10 +1073,8 @@ class Viewer(pyglet.window.Window):
             for node in old_nodes:
                 if node in self._axes:
                     continue
-                n = Node(
-                    mesh=self._axis_mesh,
-                    scale=np.ones(3) * node.mesh.scale * 0.5
-                )
+                n = Node(mesh=self._axis_mesh,
+                         scale=np.ones(3) * node.mesh.scale * 0.5)
                 self.scene.add_node(n, parent_node=node)
                 self._axes[node] = n
         else:
